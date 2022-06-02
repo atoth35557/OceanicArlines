@@ -17,10 +17,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Entities\Data\AdminPortal\" />
-    <Folder Include="Repositories\Interaces\" />
-    <Folder Include="Repositories\Implementations\" />
-  </ItemGroup>
-
 </Project>

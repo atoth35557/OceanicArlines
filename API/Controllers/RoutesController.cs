@@ -1,30 +1,36 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using API.Entities.Data.Booking;
+using API.Repositories.Implementations;
 
 namespace API.Controllers
 {
-   // [Authorize]
+    [Authorize]
     [ApiController]
     [Route("deliveries")]
     public class RoutesController : ControllerBase
     {
+        private readonly IRouteCalculationProvider calculationProvider;
+
+        public RoutesController(IRouteCalculationProvider calculationProvider)
+        {
+            this.calculationProvider = calculationProvider;
+        }
         [HttpPost]
         [Route("info")]
         public async Task<IActionResult> CalculateBooking([FromBody] Calculation calculation)
         {
-            var random = new Random();
-            
-            return Ok(new CalculationResult { Price = random.NextDouble()*200,  Time = random.Next(0, 100) });
+
+            var result = await calculationProvider.CalculateRoute(calculation);
+            return Ok(result);
         }
 
         [HttpPost]
         [Route("confirm")]
-        public async Task<IActionResult> ConfirmBooking([FromBody] BookingResult bookingResult)
+        public async Task<IActionResult> ConfirmBooking([FromBody] Booking booking)
         {
-            var random = new Random();
-
-            return Ok(new BookingResult { Price = random.NextDouble() * 200, IDs = new List<string> { "b7271266-ecbb-4658-9f8f-99e7d61f5727", "ffd1e502-6370-4709-bf09-a383cc7b30fc" } });
+            var result = await calculationProvider.BookShipment(booking);
+            return Ok(result);
         }
     }
 

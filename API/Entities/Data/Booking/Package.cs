@@ -13,7 +13,7 @@ namespace API.Entities.Data.Booking
         [Required(ErrorMessage = "Package depth is required")]
         public double? depth { get; set; }
         [Required(ErrorMessage = "Package type is required")]
-        public string? type { get; set; }
+        public List<string>? types { get; set; }
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using API.Entities.Data.AdminPortal;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,8 @@ namespace API.Entities
         {
             base.OnModelCreating(builder);
         }
+
+        public DbSet<Town> Towns { get; set; }
     }
 }
 
