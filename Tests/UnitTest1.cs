@@ -9,10 +9,10 @@ namespace Tests
         public void Test1()
         {
             var mock = new Mock<DummyService>();
-            mock.Setup(x => x.Add(It,1)).Returns
-                (6);
-            int number1 = 1;
-            int number2 = 4;
+            mock.Setup(x => x.Add(2,3)).Returns
+                (5);
+            int number1 = 2;
+            int number2 = 3;
             var calculator = new Calculator(mock.Object);
 
 
