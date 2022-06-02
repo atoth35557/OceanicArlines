@@ -72,8 +72,11 @@ namespace API.Controllers
                 UserName = model.Username
             };
             var result = await _userManager.CreateAsync(user, model.Password);
+
             if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError, new AuthResponse { Status = "Error", Message = "User creation failed! Please check user details and try again." });
+                return StatusCode(StatusCodes.Status400BadRequest
+                    , new AuthResponse { Status = "Error",
+                        Message = GetErrorMessage(result.Errors) });
 
             return Ok(new AuthResponse { Status = "Success", Message = "User created successfully!" });
         }
@@ -100,6 +103,7 @@ namespace API.Controllers
             return Ok(new AuthResponse { Status = "Success", Message = "User created successfully!" });
         }
 
+        [HttpPost]
         [Route("register-admin")]
         public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel model)
         {
@@ -111,7 +115,7 @@ namespace API.Controllers
             {
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
-                UserName = model.Username
+                UserName = model.Username,
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
