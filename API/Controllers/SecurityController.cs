@@ -27,6 +27,33 @@ namespace API.Controllers
             _configuration = configuration;
         }
 
+        [HttpDelete]
+        [Authorize(Roles = UserRoles.Admin)]
+        [Route("{username}")]
+        public async Task<IActionResult> Delete([FromRoute] string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+
+            if (user == null)
+            {
+                return StatusCode
+                    (StatusCodes.Status404NotFound, new AuthResponse { Status = "Error", Message = $"{username} does not exists!" });
+
+            }
+
+            var result = await _userManager.DeleteAsync(user);
+
+            if (!result.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError
+                    , new AuthResponse
+                    {
+                        Status = "Error",
+                        Message = GetErrorMessage(result.Errors)
+                    });
+
+            return Ok(new AuthResponse { Status = "Success", Message = $"User {username} was deleted!" });
+        }
+
         [HttpPost]
         [Authorize(Roles = UserRoles.Admin)]
         [Route("reject-user/{username}")]
