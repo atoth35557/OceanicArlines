@@ -16,6 +16,8 @@ namespace API.Entities
         }
 
         public DbSet<Town> Towns { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<PackageType> PackageTypes { get; set; }
     }
 }
 
