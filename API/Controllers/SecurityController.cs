@@ -1,4 +1,5 @@
 using API.Entities.Data.Security;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -27,11 +28,67 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = UserRoles.Admin)]
+        [Route("reject-user/{username}")]
+        public async Task<IActionResult> Reject([FromRoute] string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+
+            if (user == null)
+            {
+                return StatusCode
+                    (StatusCodes.Status404NotFound, new AuthResponse { Status = "Error", Message = $"{username} does not exists!" });
+
+            }
+            user.EmailConfirmed = false;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError
+                    , new AuthResponse
+                    {
+                        Status = "Error",
+                        Message = GetErrorMessage(result.Errors)
+                    });
+
+            return Ok(new AuthResponse { Status = "Success", Message = $"User {username} was rejected!" });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = UserRoles.Admin)]
+        [Route("approve-user/{username}")]
+        public async Task<IActionResult> Approve([FromRoute]string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+            
+            if(user == null)
+            {
+                return StatusCode
+                    (StatusCodes.Status404NotFound, new AuthResponse { Status = "Error", Message = $"{username} does not exists!" });
+
+            }
+            user.EmailConfirmed = true;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError
+                    , new AuthResponse
+                    {
+                        Status = "Error",
+                        Message = GetErrorMessage(result.Errors)
+                    });
+
+            return Ok(new AuthResponse { Status = "Success", Message = $"User {username} was approved!" });
+        }
+
+        [HttpPost]
         [Route("authenticate")]
         public async Task<IActionResult> Login([FromBody] LoginModel model)
         {
             var user = await _userManager.FindByNameAsync(model.Username);
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password) && user.EmailConfirmed)
             {
                 var userRoles = await _userManager.GetRolesAsync(user);
 
@@ -82,6 +139,7 @@ namespace API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = UserRoles.Admin)]
         [Route("register-employee")]
         public async Task<IActionResult> RegisterEmployee([FromBody] RegisterModel model)
         {
@@ -97,13 +155,18 @@ namespace API.Controllers
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError, new AuthResponse { Status = "Error", Message = "User creation failed! Please check user details and try again." });
-          
+                return StatusCode(StatusCodes.Status400BadRequest
+                    , new AuthResponse
+                    {
+                        Status = "Error",
+                        Message = GetErrorMessage(result.Errors)
+                    });
             await AddRolls(user);
             return Ok(new AuthResponse { Status = "Success", Message = "User created successfully!" });
         }
 
         [HttpPost]
+        [Authorize(Roles = UserRoles.Admin)]
         [Route("register-admin")]
         public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel model)
         {
@@ -119,8 +182,12 @@ namespace API.Controllers
             };
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
-                return StatusCode(StatusCodes.Status500InternalServerError, new AuthResponse { Status = "Error", Message = "User creation failed! Please check user details and try again." });
-
+                return StatusCode(StatusCodes.Status400BadRequest
+                   , new AuthResponse
+                   {
+                       Status = "Error",
+                       Message = GetErrorMessage(result.Errors)
+                   });
             await AddRolls(user);
 
             if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
@@ -165,5 +232,16 @@ namespace API.Controllers
                 await _userManager.AddToRoleAsync(user, UserRoles.User);
             }
         }
+
+
+        private static string GetErrorMessage(IEnumerable<IdentityError> errors)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var error in errors)
+            {
+                sb.AppendLine(error.Description);
+            }
+            return sb.ToString();
+        } 
     }
 }
