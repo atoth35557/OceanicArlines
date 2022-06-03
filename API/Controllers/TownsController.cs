@@ -33,7 +33,15 @@ namespace API.Controllers
                 return BadRequest("Invalid town");
             }
             town.Id = Guid.NewGuid();
+            foreach (var item in town.Connections)
+            {
+                item.Id = Guid.NewGuid();
+            }
             context.Towns.Add(town);
+            if(context.SaveChanges() < 1)
+            {
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
@@ -45,10 +53,14 @@ namespace API.Controllers
                 return NotFound();
             }
             context.Towns.Update(town);
+            if (context.SaveChanges() < 1)
+            {
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
-        [HttpPut]
+        [HttpDelete]
         public IActionResult DeleteTown([FromBody] Town town)
         {
             if (town == null)
@@ -56,6 +68,10 @@ namespace API.Controllers
                 return NotFound();
             }
             context.Towns.Remove(town);
+            if (context.SaveChanges() < 1)
+            {
+                return StatusCode(500);
+            }
             return NoContent();
         }
     }

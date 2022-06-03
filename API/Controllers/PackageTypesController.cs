@@ -31,6 +31,10 @@ namespace API.Controllers
             }
             type.Id = Guid.NewGuid();
             context.PackageTypes.Add(type);
+            if (context.SaveChanges() < 1)
+            {
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
@@ -42,10 +46,14 @@ namespace API.Controllers
                 return NotFound();
             }
             context.PackageTypes.Update(packageType);
+            if (context.SaveChanges() < 1)
+            {
+                return StatusCode(500);
+            }
             return NoContent();
         }
 
-        [HttpPut]
+        [HttpDelete]
         public IActionResult DeleteTown([FromBody] PackageType packageType)
         {
             if (packageType == null)
@@ -53,6 +61,10 @@ namespace API.Controllers
                 return NotFound();
             }
             context.PackageTypes.Remove(packageType);
+            if (context.SaveChanges() < 1)
+            {
+                return StatusCode(500);
+            }
             return NoContent();
         }
     }

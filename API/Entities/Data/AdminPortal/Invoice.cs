@@ -1,7 +1,10 @@
-﻿namespace API.Entities.Data.AdminPortal
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace API.Entities.Data.AdminPortal
 {
     public class Invoice
     {
+        [Key]
         public Guid Id { get; set; }
         public string? CustomerName { get; set; }
         public string? Email { get; set; }
